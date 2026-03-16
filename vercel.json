@@ -1,0 +1,16 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": null,
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "JWT_SECRET": "@jwt_secret",
+    "STACKMAIL_HOST": "@stackmail_host",
+    "STACKMAIL_PORT": "@stackmail_port",
+    "STACKMAIL_SECURE": "@stackmail_secure",
+    "STACKMAIL_USER": "@stackmail_user",
+    "STACKMAIL_PASS": "@stackmail_pass",
+    "ADMIN_EMAIL": "@admin_email",
+    "NODE_ENV": "production",
+    "FRONTEND_URL": "@frontend_url"
+  }
+}
