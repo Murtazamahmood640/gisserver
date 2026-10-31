@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
+import logger from './logger';
 import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-dotenv.config();
-
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI as string; // ✅ fix here
 
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
@@ -37,11 +38,14 @@ export async function connectDB() {
     cached.promise = mongoose
       .connect(MONGODB_URI, opts)
       .then((mongoose) => {
-        console.log('MongoDB connected');
+        logger.info('MongoDB connected');
         return mongoose;
       })
       .catch((err) => {
-        console.error('MongoDB connection error:', err);
+        // Clear the cached promise so next request retries connection
+        cached.promise = null;
+        cached.conn = null;
+        logger.error({ err }, 'MongoDB connection error');
         throw err;
       });
   }

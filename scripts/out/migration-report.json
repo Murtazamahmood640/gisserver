@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-31T20:17:12.757Z",
+  "mode": "apply",
+  "businessTimezone": "America/New_York",
+  "totalAppointments": 1,
+  "migrated": 0,
+  "skipped": 1,
+  "unmappable": 0,
+  "futureSlotsReserved": 0,
+  "capacityExceededCount": 0,
+  "unmappableRecords": []
+}

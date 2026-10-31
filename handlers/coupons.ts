@@ -1,8 +1,9 @@
+import logger from '../config/logger';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectDB } from '../config/database.ts';
-import { Coupon } from '../models/Coupon.ts';
-import { verifyToken } from '../utils/jwt.ts';
-import type { JwtPayload } from '../utils/jwt.ts';
+import { connectDB } from '../config/database';
+import { Coupon } from '../models/Coupon';
+import { verifyToken } from '../utils/jwt';
+import type { JwtPayload } from '../utils/jwt';
 
 async function getTokenFromRequest(req: VercelRequest): Promise<JwtPayload | null> {
   const authHeader = req.headers['authorization'];
@@ -49,7 +50,7 @@ export default async function handler(
     if (req.method === 'GET') {
       const { search, status } = req.query;
 
-      let query: any = {};
+      const query: any = {};
 
       if (search) {
         query.code = { $regex: search, $options: 'i' };
@@ -158,7 +159,7 @@ export default async function handler(
       const updatedCoupon = await Coupon.findByIdAndUpdate(
         id,
         updateData,
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
       );
 
       if (!updatedCoupon) {
@@ -204,7 +205,7 @@ export default async function handler(
       message: 'Method not allowed',
     });
   } catch (error) {
-    console.error('Coupon API error:', error);
+    logger.error({ err: error }, 'Coupons handler error');
 
     return res.status(500).json({
       success: false,

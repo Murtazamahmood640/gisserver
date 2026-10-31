@@ -6,6 +6,11 @@ export interface CouponDetail {
   discountAmount: number;
 }
 
+export interface AddonDetail {
+  name: string;
+  price: number;
+}
+
 export interface IAppointment extends mongoose.Document {
   fullName: string;
   phone: string;
@@ -13,7 +18,7 @@ export interface IAppointment extends mongoose.Document {
   address: string;
   vehicleName: string;
   make: string;
-  model: string;
+  vehicleModel: string; // ✅ renamed from 'model'
   year: string;
   serviceType: string;
   vehicleCategory: string;
@@ -21,6 +26,7 @@ export interface IAppointment extends mongoose.Document {
   timeSlot: string;
   promoCode?: string;
   coupons: CouponDetail[];
+  addons: AddonDetail[];
   basePrice: number;
   totalDiscount: number;
   discountApplied: boolean;
@@ -51,13 +57,13 @@ const appointmentSchema = new mongoose.Schema<IAppointment>(
     },
     vehicleName: {
       type: String,
-      required: [true, 'Vehicle name is required'],
+      default: '',
     },
     make: {
       type: String,
       required: [true, 'Vehicle make is required'],
     },
-    model: {
+    vehicleModel: { // ✅ renamed from 'model'
       type: String,
       required: [true, 'Vehicle model is required'],
     },
@@ -96,6 +102,18 @@ const appointmentSchema = new mongoose.Schema<IAppointment>(
           required: true,
         },
         discountAmount: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
+    addons: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        price: {
           type: Number,
           required: true,
         },

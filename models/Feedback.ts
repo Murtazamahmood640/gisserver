@@ -7,6 +7,12 @@ export interface IFeedback extends mongoose.Document {
   title: string;
   feedback: string;
   status: 'pending' | 'draft' | 'publish';
+
+  // NEW FIELDS
+  source: 'manual' | 'facebook';
+  externalId?: string;
+  profileUrl?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,9 +47,29 @@ const feedbackSchema = new mongoose.Schema<IFeedback>(
       enum: ['pending', 'draft', 'publish'],
       default: 'pending',
     },
+
+    // 🔥 NEW: where feedback came from
+    source: {
+      type: String,
+      enum: ['manual', 'facebook'],
+      default: 'manual',
+    },
+
+    // 🔥 NEW: unique Facebook comment/review ID
+    externalId: {
+      type: String,
+      sparse: true, // allows null but ensures uniqueness when present
+      unique: true,
+    },
+
+    // 🔥 NEW: link to Facebook profile
+    profileUrl: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
 
 export const Feedback =
-  mongoose.models.Feedback || mongoose.model<IFeedback>('Feedback', feedbackSchema);
+  mongoose.models.Feedback ||
+  mongoose.model<IFeedback>('Feedback', feedbackSchema);

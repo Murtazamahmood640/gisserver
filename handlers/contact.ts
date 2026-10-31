@@ -1,14 +1,21 @@
+import logger from '../config/logger';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectDB } from '../config/database.ts';
-import { Contact } from '../models/Contact.ts';
-import { sendEmail, getContactAcknowledgmentEmail } from '../services/emailService.ts';
-import { verifyToken, type JwtPayload } from '../utils/jwt.ts';
+import { connectDB } from '../config/database';
+import { Contact } from '../models/Contact';
+import { sendEmail, getContactAcknowledgmentEmail } from '../services/emailService';
+import { verifyToken, type JwtPayload } from '../utils/jwt';
 
 async function getTokenFromRequest(req: VercelRequest): Promise<JwtPayload | null> {
+  const authUser = (req as any).user;
+  if (authUser) return authUser;
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return null;
-  return verifyToken(token);
+  const decoded = verifyToken(token);
+  if (decoded && (decoded.role as string) === 'user') {
+    return { ...decoded, role: 'dispatcher' };
+  }
+  return decoded;
 }
 
 export default async function handler(
@@ -34,14 +41,14 @@ export default async function handler(
       try {
         await sendEmail({
           to: contactData.email,
-          subject: 'Thank you for contacting Luxe Detail Booker',
+          subject: 'Thank you for contacting Global Integrated Support',
           html: getContactAcknowledgmentEmail({
             fullName: contactData.fullName,
           }),
         });
 
         await sendEmail({
-          to: process.env.ADMIN_EMAIL || 'info@vornoxlab.com',
+          to: process.env.ADMIN_EMAIL || 'support@globalintegratedsupport.com',
           subject: `New Contact Form Submission - ${contactData.subject}`,
           html: `
             <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -56,7 +63,7 @@ export default async function handler(
           `,
         });
       } catch (emailError) {
-        console.error('Email sending error:', emailError);
+        logger.error({ err: emailError }, 'Email sending error');
       }
 
       return res.status(201).json({
@@ -74,7 +81,14 @@ export default async function handler(
       });
     }
 
-    if (user.role !== 'admin') {
+    const effectiveRole = user.role === 'user' ? 'dispatcher' : user.role;
+    if (effectiveRole !== 'admin' && effectiveRole !== 'dispatcher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required',
+      });
+    }
+    if (req.method === 'DELETE' && effectiveRole !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Admin access required',
@@ -108,7 +122,7 @@ export default async function handler(
       const contact = await Contact.findByIdAndUpdate(
         id,
         { status },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       if (!contact) {
@@ -153,7 +167,7 @@ export default async function handler(
       });
     }
   } catch (error) {
-    console.error('Contact error:', error);
+    logger.error({ err: error }, 'Contact handler error');
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

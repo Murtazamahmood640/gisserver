@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Build artifacts
+dist/
+*.js.map
+
+# Environment / secrets — never bake into the image
+.env
+.env.*
+!.env.example
+
+# Testing
+tests/
+coverage/
+*.test.ts
+*.spec.ts
+vitest.config.ts
+
+# Development-only scripts
+scripts/
+seedBlogs.ts
+check-users.ts
+test-email.ts
+
+# Editor / OS files
+.DS_Store
+.vscode/
+*.swp
+Thumbs.db
+
+# Git
+.git/
+.gitignore

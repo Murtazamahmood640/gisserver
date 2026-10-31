@@ -37,7 +37,6 @@ const couponSchema = new mongoose.Schema<ICoupon>(
 );
 
 // Index for efficient querying
-couponSchema.index({ code: 1 });
 couponSchema.index({ isActive: 1 });
 
 export const Coupon =

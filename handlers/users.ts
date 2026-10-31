@@ -1,7 +1,9 @@
+import logger from '../config/logger';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectDB } from '../config/database.ts';
-import { User } from '../models/User.ts';
-import { verifyToken, type JwtPayload } from '../utils/jwt.ts';
+import { connectDB } from '../config/database';
+import { User } from '../models/User';
+import { verifyToken, type JwtPayload } from '../utils/jwt';
+import { invalidateUserStatusCache } from '../middleware/auth';
 
 async function getTokenFromRequest(req: VercelRequest): Promise<JwtPayload | null> {
   const authHeader = req.headers['authorization'];
@@ -35,7 +37,7 @@ export default async function handler(
     if (req.method === 'GET') {
       const { search, role, status } = req.query;
 
-      let query: any = {};
+      const query: any = {};
 
       if (search) {
         query.$or = [
@@ -153,9 +155,10 @@ export default async function handler(
           ...(role && { role }),
           ...(isActive !== undefined && { isActive }),
         },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
       ).select('-password');
 
+      invalidateUserStatusCache(id as string);
       if (!updatedUser) {
         return res.status(404).json({
           success: false,
@@ -188,6 +191,7 @@ export default async function handler(
 
       const deletedUser = await User.findByIdAndDelete(id);
 
+      invalidateUserStatusCache(id as string);
       if (!deletedUser) {
         return res.status(404).json({
           success: false,
@@ -206,7 +210,7 @@ export default async function handler(
       message: 'Method not allowed',
     });
   } catch (error) {
-    console.error('User API error:', error);
+    logger.error({ err: error }, 'Users handler error');
 
     return res.status(500).json({
       success: false,

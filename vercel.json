@@ -1,16 +1,26 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": null,
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "STACKMAIL_HOST": "@stackmail_host",
-    "STACKMAIL_PORT": "@stackmail_port",
-    "STACKMAIL_SECURE": "@stackmail_secure",
-    "STACKMAIL_USER": "@stackmail_user",
-    "STACKMAIL_PASS": "@stackmail_pass",
-    "ADMIN_EMAIL": "@admin_email",
-    "NODE_ENV": "production",
-    "FRONTEND_URL": "@frontend_url"
-  }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.ts"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
+    }
+  ]
 }
