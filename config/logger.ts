@@ -1,21 +1,10 @@
 /**
  * Structured logger (pino).
- *
- * Configuration:
- *   LOG_LEVEL  — pino log level: trace | debug | info | warn | error | fatal
- *               Defaults to "info".  Forced to "silent" in test mode.
- *
- * Sensitive fields redacted from every log line:
- *   - req.headers.authorization
- *   - req.headers.cookie
- *   - Any field named: password, token, secret, apiKey, api_key,
- *     accessToken, access_token, refreshToken, refresh_token,
- *     resetToken, reset_token, emailBody, html (email template fields)
  */
-
 import pino from 'pino';
 
 const isTest = process.env.NODE_ENV === 'test';
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
 const REDACT_PATHS = [
   'req.headers.authorization',
@@ -48,9 +37,9 @@ const logger = pino({
     paths: REDACT_PATHS,
     censor: '[REDACTED]',
   },
-  // Pretty-print in development; structured JSON in production/staging
+  // Never use pino-pretty on Vercel/serverless environments
   transport:
-    !isTest && process.env.NODE_ENV === 'development'
+    !isTest && !isVercel && process.env.NODE_ENV === 'development'
       ? { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } }
       : undefined,
 });

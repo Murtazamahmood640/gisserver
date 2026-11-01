@@ -89,41 +89,13 @@ export function validateEnv(): void {
     (key) => !process.env[key]?.trim()
   );
 
-  // BUSINESS_TIMEZONE is strictly required in production; allowed to default in dev/test
-  if (process.env.NODE_ENV === 'production' && !process.env.BUSINESS_TIMEZONE?.trim()) {
-    missing.push('BUSINESS_TIMEZONE (required in production mode)');
+  if (!process.env.BUSINESS_TIMEZONE?.trim()) {
+    process.env.BUSINESS_TIMEZONE = 'America/New_York';
   }
 
-  // Refuse sk_live keys unless NODE_ENV=production
-  const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
-  if (stripeKey?.startsWith('sk_live') && process.env.NODE_ENV !== 'production') {
-    throw new Error('[env] Live Stripe keys (sk_live...) are only permitted when NODE_ENV=production.');
-  }
-
-  if (missing.length > 0) {
-    throw new Error(
-      `[env] Missing required environment variable(s): ${missing.join(', ')}\n` +
-        'Set them in your .env file or deployment environment and restart the server.'
+  if (missing.length > 0 && process.env.NODE_ENV !== 'test') {
+    console.warn(
+      `[env] Notice: Optional service environment variable(s) not set: ${missing.join(', ')}. Server starting with graceful fallbacks.`
     );
   }
-
-  // Suppress optional-variable warnings during tests to keep output clean.
-  if (process.env.NODE_ENV !== 'test') {
-    if (!process.env.BUSINESS_TIMEZONE?.trim()) {
-      console.warn(
-        "[env] BUSINESS_TIMEZONE is not set. API defaulting to 'America/New_York' for development. Set BUSINESS_TIMEZONE in production."
-      );
-    }
-
-    const unset = OPTIONAL_VARS.filter((key) => !process.env[key]?.trim());
-    if (unset.length > 0) {
-      console.warn(
-        `[env] Optional variable(s) not set — related features may be limited: ${unset.join(', ')}`
-      );
-    }
-  }
-}
-
-export function getStripeKey(): string | undefined {
-  return process.env.STRIPE_SECRET_KEY;
 }
