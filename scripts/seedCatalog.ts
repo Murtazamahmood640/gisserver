@@ -142,47 +142,47 @@ export const SEED_DATA = {
     },
   ],
 
-  // 20 vehicle prices in integer cents exactly mirroring PRICING_DATA in src/data/pricing.ts
+  // 20 vehicle prices in integer cents matching Core Detailing Packages table
   prices: [
-    // Interior Only ($228.99, $238.99, $248.99, $268.99, $468.99)
-    { serviceSlug: 'interior-only', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 22899 },
-    { serviceSlug: 'interior-only', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 23899 },
-    { serviceSlug: 'interior-only', vehicleCategory: 'suv' as VehicleCategory, priceCents: 24899 },
-    { serviceSlug: 'interior-only', vehicleCategory: 'truck' as VehicleCategory, priceCents: 26899 },
-    { serviceSlug: 'interior-only', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 46899 },
+    // Interior Only ($198.99, $208.99, $218.99, $238.99, $438.99)
+    { serviceSlug: 'interior-only', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 19899 },
+    { serviceSlug: 'interior-only', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 20899 },
+    { serviceSlug: 'interior-only', vehicleCategory: 'suv' as VehicleCategory, priceCents: 21899 },
+    { serviceSlug: 'interior-only', vehicleCategory: 'truck' as VehicleCategory, priceCents: 23899 },
+    { serviceSlug: 'interior-only', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 43899 },
 
-    // Exterior Only ($228.99, $238.99, $248.99, $268.99, $468.99)
-    { serviceSlug: 'exterior-only', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 22899 },
-    { serviceSlug: 'exterior-only', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 23899 },
-    { serviceSlug: 'exterior-only', vehicleCategory: 'suv' as VehicleCategory, priceCents: 24899 },
-    { serviceSlug: 'exterior-only', vehicleCategory: 'truck' as VehicleCategory, priceCents: 26899 },
-    { serviceSlug: 'exterior-only', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 46899 },
+    // Exterior Only ($198.99, $208.99, $218.99, $238.99, $438.99)
+    { serviceSlug: 'exterior-only', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 19899 },
+    { serviceSlug: 'exterior-only', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 20899 },
+    { serviceSlug: 'exterior-only', vehicleCategory: 'suv' as VehicleCategory, priceCents: 21899 },
+    { serviceSlug: 'exterior-only', vehicleCategory: 'truck' as VehicleCategory, priceCents: 23899 },
+    { serviceSlug: 'exterior-only', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 43899 },
 
-    // Interior and Exterior Both ($248.99, $268.99, $288.99, $298.99, $628.99)
-    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 24899 },
-    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 26899 },
-    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'suv' as VehicleCategory, priceCents: 28899 },
-    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'truck' as VehicleCategory, priceCents: 29899 },
-    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 62899 },
+    // Interior and Exterior Both ($218.99, $238.99, $258.99, $268.99, $598.99)
+    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 21899 },
+    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 23899 },
+    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'suv' as VehicleCategory, priceCents: 25899 },
+    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'truck' as VehicleCategory, priceCents: 26899 },
+    { serviceSlug: 'interior-and-exterior-both', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 59899 },
 
-    // Super Wax Detail ($278.99, $298.99, $318.99, $328.99, $658.99)
-    { serviceSlug: 'super-wax-detail', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 27899 },
-    { serviceSlug: 'super-wax-detail', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 29899 },
-    { serviceSlug: 'super-wax-detail', vehicleCategory: 'suv' as VehicleCategory, priceCents: 31899 },
-    { serviceSlug: 'super-wax-detail', vehicleCategory: 'truck' as VehicleCategory, priceCents: 32899 },
-    { serviceSlug: 'super-wax-detail', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 65899 },
+    // Super Wax Detail ($248.99, $268.99, $288.99, $298.99, $628.99)
+    { serviceSlug: 'super-wax-detail', vehicleCategory: 'sedan' as VehicleCategory, priceCents: 24899 },
+    { serviceSlug: 'super-wax-detail', vehicleCategory: 'crossover' as VehicleCategory, priceCents: 26899 },
+    { serviceSlug: 'super-wax-detail', vehicleCategory: 'suv' as VehicleCategory, priceCents: 28899 },
+    { serviceSlug: 'super-wax-detail', vehicleCategory: 'truck' as VehicleCategory, priceCents: 29899 },
+    { serviceSlug: 'super-wax-detail', vehicleCategory: 'rv-boat-semi' as VehicleCategory, priceCents: 62899 },
   ],
 
-  // 8 add-on prices in integer cents exactly mirroring ADDONS_DATA in src/data/pricing.ts
+  // 8 add-on prices in integer cents matching Add-On Services table
   addons: [
-    { name: 'Pet Hair / Sand Removal', priceCents: 4999, isActive: true },
-    { name: 'Premium Ceramic Wax', priceCents: 6999, isActive: true },
-    { name: 'Bio-Clean Sanitization', priceCents: 8999, isActive: true },
-    { name: '2-Step Claybar Treatment', priceCents: 7999, isActive: true },
-    { name: 'Baby Car Seat Detail', priceCents: 3999, isActive: true },
-    { name: 'Engine Bay Detail', priceCents: 5999, isActive: true },
-    { name: 'Headlight Restoration', priceCents: 6499, isActive: true },
-    { name: 'Leather Conditioning', priceCents: 5499, isActive: true },
+    { name: 'Baby Car Seat Detail', priceCents: 2499, isActive: true },
+    { name: 'Pet Hair / Sand Removal', priceCents: 3499, isActive: true },
+    { name: 'Leather Conditioning', priceCents: 3999, isActive: true },
+    { name: 'Engine Bay Detail', priceCents: 4499, isActive: true },
+    { name: 'Headlight Restoration', priceCents: 4999, isActive: true },
+    { name: 'Premium Ceramic Wax', priceCents: 5499, isActive: true },
+    { name: '2-Step Claybar Treatment', priceCents: 6499, isActive: true },
+    { name: 'Bio-Clean Sanitization', priceCents: 7499, isActive: true },
   ],
 
   // Inactive placeholder services for the other 6 categories
