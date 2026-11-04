@@ -49,6 +49,8 @@ export const createBookingSchema = z.object({
   couponCode: z.string().optional().nullable(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be formatted as YYYY-MM-DD'),
   slot: z.string().min(1, 'Time slot is required'),
+  phone: z.string().optional(),
+  customerPhone: z.string().optional(),
   address: addressSnapshotSchema.optional(),
   addressId: z.string().optional(),
   guest: guestInfoSchema.optional(),

@@ -28,6 +28,7 @@ import { checkTechnicianAvailabilityConflict } from '../dispatch/matching';
 import { createHttpError } from '../../utils/httpErrors';
 import { PaymentSettings } from '../../models/PaymentSettings';
 import { PaymentService } from '../payments/service';
+import { User } from '../../models/User';
 
 export interface CreateBookingServiceInput {
   serviceId: string;
@@ -40,6 +41,8 @@ export interface CreateBookingServiceInput {
   couponCode?: string | null;
   date: string; // "YYYY-MM-DD"
   slot: string; // "HH:mm" or "09:00 AM"
+  phone?: string;
+  customerPhone?: string;
   address?: any;
   addressId?: string;
   guest?: {
@@ -64,10 +67,20 @@ export class BookingService {
 
     // 1. Validate customer / guest details
     let customerId: mongoose.Types.ObjectId | null = null;
+    let customerUser: any = null;
     const guestInfo = input.guest;
 
     if (!isGuest) {
       customerId = new mongoose.Types.ObjectId(authUser.userId);
+      try {
+        customerUser = await User.findById(customerId).select('fullName email phone phoneCountryCode');
+        if (customerUser && !customerUser.phone && (input.phone || input.customerPhone)) {
+          customerUser.phone = input.phone || input.customerPhone;
+          await customerUser.save().catch(() => {});
+        }
+      } catch (uErr) {
+        logger.warn({ err: uErr }, 'Failed to lookup booking customer user details');
+      }
     } else {
       if (!guestInfo?.fullName || !guestInfo?.email || !guestInfo?.phone) {
         const err = new Error('Guest booking requires full name, email, and phone number') as any;
@@ -174,7 +187,15 @@ export class BookingService {
     const booking = new Booking({
       bookingNumber,
       customerId,
-      guest: guestInfo,
+      guest: guestInfo || (customerUser ? {
+        fullName: customerUser.fullName || 'Customer',
+        email: customerUser.email || authUser?.email || '',
+        phone: customerUser.phone || input.phone || input.customerPhone || '',
+      } : (input.phone || input.customerPhone) ? {
+        fullName: 'Customer',
+        email: authUser?.email || '',
+        phone: input.phone || input.customerPhone || '',
+      } : undefined),
       guestAccessTokenHash,
       vehicleId,
       vehicleSnapshot: {
@@ -226,8 +247,15 @@ export class BookingService {
     }
 
     // 9. Send emails asynchronously
-    const recipientEmail = guestInfo?.email || authUser?.email;
-    const recipientName = guestInfo?.fullName || 'Customer';
+    const recipientPhone =
+      guestInfo?.phone ||
+      customerUser?.phone ||
+      input.phone ||
+      input.customerPhone ||
+      booking.guest?.phone ||
+      '';
+    const recipientEmail = guestInfo?.email || customerUser?.email || authUser?.email;
+    const recipientName = guestInfo?.fullName || customerUser?.fullName || 'Customer';
 
     if (recipientEmail) {
       const frontendUrl =
@@ -243,7 +271,7 @@ export class BookingService {
         html: getBookingConfirmationEmail({
           fullName: recipientName,
           email: recipientEmail,
-          phone: guestInfo?.phone || '',
+          phone: recipientPhone,
           address: resolvedAddress.line1 ? `${resolvedAddress.line1}, ${resolvedAddress.city || ''} ${resolvedAddress.state || ''}` : resolvedAddress.freeText,
           vehicleName: `${vehicleMake} ${vehicleModel} (${vehicleYear})`.trim() || 'Vehicle',
           make: vehicleMake,
@@ -272,7 +300,7 @@ export class BookingService {
         subject: `New Booking #${booking.bookingNumber} - Global Integrated Support`,
         html: getAdminNotificationEmail({
           fullName: recipientName,
-          phone: guestInfo?.phone || '',
+          phone: recipientPhone,
           email: recipientEmail,
           address: resolvedAddress.line1 ? `${resolvedAddress.line1}, ${resolvedAddress.city || ''} ${resolvedAddress.state || ''}` : resolvedAddress.freeText,
           vehicleName: `${vehicleMake} ${vehicleModel} (${vehicleYear})`.trim() || 'Vehicle',
