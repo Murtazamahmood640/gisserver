@@ -22,7 +22,7 @@ export function getCookieOptions(): {
     secure: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test',
     sameSite: 'lax',
     path: '/api/v1/auth',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     ...(domain ? { domain } : {}),
   };
 }

@@ -65,7 +65,7 @@ export function generateToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): string 
  */
 export function generateAccessToken(
   payload: Omit<AccessTokenPayload, 'iat' | 'exp' | 'type'>,
-  expiresIn: string | number = '15m'
+  expiresIn: string | number = '24h'
 ): string {
   return jwt.sign(
     {

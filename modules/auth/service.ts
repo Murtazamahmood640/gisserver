@@ -26,11 +26,13 @@ import {
 import logger from '../../config/logger';
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 30;
+const ACCESS_TOKEN_EXPIRY = '24h';
+const ACCESS_TOKEN_EXPIRY_SECONDS = 86400; // 24 hours
 
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number; // 900 seconds (15 min)
+  expiresIn: number; // 86400 seconds (24 hours)
   tokenType: 'Bearer';
   user: {
     id: string;
@@ -55,13 +57,16 @@ export class AuthService {
   ): Promise<TokenResponse> {
     const effectiveRole = user.getEffectiveRole();
 
-    const accessToken = generateAccessToken({
-      userId: user._id.toString(),
-      email: user.email,
-      role: effectiveRole,
-      status: user.status,
-      emailVerified: user.emailVerified,
-    });
+    const accessToken = generateAccessToken(
+      {
+        userId: user._id.toString(),
+        email: user.email,
+        role: effectiveRole,
+        status: user.status,
+        emailVerified: user.emailVerified,
+      },
+      ACCESS_TOKEN_EXPIRY
+    );
 
     const rawRefreshToken = generateRefreshToken();
     const tokenHash = hashToken(rawRefreshToken);
@@ -83,7 +88,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken: rawRefreshToken,
-      expiresIn: 900, // 15 minutes
+      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
       tokenType: 'Bearer',
       user: {
         id: user._id.toString(),
@@ -395,18 +400,21 @@ export class AuthService {
     });
 
     const effectiveRole = user.getEffectiveRole();
-    const accessToken = generateAccessToken({
-      userId: user._id.toString(),
-      email: user.email,
-      role: effectiveRole,
-      status: user.status,
-      emailVerified: user.emailVerified,
-    });
+    const accessToken = generateAccessToken(
+      {
+        userId: user._id.toString(),
+        email: user.email,
+        role: effectiveRole,
+        status: user.status,
+        emailVerified: user.emailVerified,
+      },
+      ACCESS_TOKEN_EXPIRY
+    );
 
     return {
       accessToken,
       refreshToken: newRawRefreshToken,
-      expiresIn: 900,
+      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
       tokenType: 'Bearer',
       user: {
         id: user._id.toString(),
