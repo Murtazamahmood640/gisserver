@@ -24,6 +24,7 @@ import { DispatchSettings } from '../../models/DispatchSettings';
 import { DispatchService } from '../dispatch/service';
 import { TechnicianProfile } from '../../models/TechnicianProfile';
 import { Service } from '../../models/Service';
+import { ServiceCategory } from '../../models/ServiceCategory';
 import { checkTechnicianAvailabilityConflict } from '../dispatch/matching';
 import { createHttpError } from '../../utils/httpErrors';
 import { PaymentSettings } from '../../models/PaymentSettings';
@@ -379,7 +380,10 @@ export class BookingService {
     authUser?: { userId: string; email: string; role: string },
     guestToken?: string
   ) {
-    const booking = await Booking.findOne({ _id: bookingId, deletedAt: null });
+    const booking = await Booking.findOne({ _id: bookingId, deletedAt: null })
+      .populate('customerId', 'fullName email phone')
+      .populate('categoryId', 'name slug')
+      .populate('serviceId', 'name slug');
     if (!booking) {
       const err = new Error('Booking not found') as any;
       err.statusCode = 404;
@@ -389,7 +393,7 @@ export class BookingService {
 
     const isPrivileged = authUser && (authUser.role === 'admin' || authUser.role === 'dispatcher');
     const isCustomerOwner =
-      Boolean(authUser && booking.customerId && booking.customerId.toString() === authUser.userId);
+      Boolean(authUser && booking.customerId && (typeof booking.customerId === 'object' ? (booking.customerId as any)._id?.toString() : booking.customerId.toString()) === authUser.userId);
 
     let isGuestTokenValid = false;
     if (guestToken && booking.guestAccessTokenHash) {
@@ -402,6 +406,14 @@ export class BookingService {
       err.statusCode = 403;
       err.code = 'FORBIDDEN';
       throw err;
+    }
+
+    if (!booking.guest && booking.customerId && typeof booking.customerId === 'object') {
+      booking.guest = {
+        fullName: (booking.customerId as any).fullName || 'Registered Customer',
+        email: (booking.customerId as any).email || '',
+        phone: (booking.customerId as any).phone || '',
+      };
     }
 
     return booking;
@@ -668,6 +680,7 @@ export class BookingService {
     startDate?: string;
     endDate?: string;
     categoryId?: string;
+    serviceType?: string;
     search?: string;
     page?: number;
     limit?: number;
@@ -675,12 +688,31 @@ export class BookingService {
   }) {
     const filter: any = { deletedAt: null };
 
-    if (query.status) {
+    if (query.status && query.status !== 'all') {
       filter.status = query.status;
     }
 
-    if (query.categoryId && mongoose.isValidObjectId(query.categoryId)) {
-      filter.categoryId = query.categoryId;
+    if (query.categoryId && query.categoryId !== 'all') {
+      if (mongoose.isValidObjectId(query.categoryId)) {
+        filter.categoryId = new mongoose.Types.ObjectId(query.categoryId);
+      } else {
+        const cat = await ServiceCategory.findOne({ slug: query.categoryId }).lean();
+        if (cat) filter.categoryId = cat._id;
+      }
+    }
+
+    if (query.serviceType && query.serviceType !== 'all') {
+      if (query.serviceType === 'detailing') {
+        filter.$or = [
+          { 'serviceSnapshot.name': /detail|interior|exterior|wax/i },
+          { 'serviceSnapshot.slug': /detail|interior|exterior|wax/i },
+        ];
+      } else if (query.serviceType === 'repair' || query.serviceType === 'mechanic' || query.serviceType === 'repairing') {
+        filter.$or = [
+          { 'serviceSnapshot.name': /oil|brake|tyre|tire|battery|repair|mechanic|diagnostic|auto/i },
+          { 'serviceSnapshot.slug': /oil|brake|tyre|tire|battery|repair|mechanic|diagnostic|auto/i },
+        ];
+      }
     }
 
     if (query.startDate || query.endDate) {
@@ -696,6 +728,7 @@ export class BookingService {
         { 'guest.fullName': searchRegex },
         { 'guest.email': searchRegex },
         { 'guest.phone': searchRegex },
+        { 'serviceSnapshot.name': searchRegex },
         { 'vehicleSnapshot.make': searchRegex },
         { 'vehicleSnapshot.model': searchRegex },
       ];
@@ -703,21 +736,24 @@ export class BookingService {
 
     // CSV Export
     if (query.format === 'csv') {
-      const allBookings = await Booking.find(filter).sort({ scheduledAt: -1 });
+      const allBookings = await Booking.find(filter)
+        .populate('customerId', 'fullName email phone')
+        .sort({ scheduledAt: -1 });
       const csvRows = [
         'Booking Number,Date,Time Slot,Customer Name,Customer Email,Customer Phone,Service,Category,Vehicle,Status,Total USD',
       ];
 
       for (const b of allBookings) {
-        const name = `"${b.guest?.fullName || ''}"`;
-        const email = `"${b.guest?.email || ''}"`;
-        const phone = `"${b.guest?.phone || ''}"`;
-        const service = `"${b.serviceSnapshot.name}"`;
-        const category = `"${b.vehicleSnapshot.category}"`;
-        const vehicle = `"${b.vehicleSnapshot.year} ${b.vehicleSnapshot.make} ${b.vehicleSnapshot.model}"`;
-        const total = (b.pricing.totalCents / 100).toFixed(2);
+        const cust = b.customerId as any;
+        const name = `"${b.guest?.fullName || cust?.fullName || ''}"`;
+        const email = `"${b.guest?.email || cust?.email || ''}"`;
+        const phone = `"${b.guest?.phone || cust?.phone || ''}"`;
+        const service = `"${b.serviceSnapshot?.name || ''}"`;
+        const category = `"${b.vehicleSnapshot?.category || ''}"`;
+        const vehicle = `"${b.vehicleSnapshot?.year || ''} ${b.vehicleSnapshot?.make || ''} ${b.vehicleSnapshot?.model || ''}"`;
+        const total = (b.pricing?.totalCents ? b.pricing.totalCents / 100 : 0).toFixed(2);
         csvRows.push(
-          `${b.bookingNumber},${b.scheduledLocal.date},${b.scheduledLocal.slot},${name},${email},${phone},${service},${category},${vehicle},${b.status},${total}`
+          `${b.bookingNumber},${b.scheduledLocal?.date || ''},${b.scheduledLocal?.slot || ''},${name},${email},${phone},${service},${category},${vehicle},${b.status},${total}`
         );
       }
 
@@ -731,10 +767,28 @@ export class BookingService {
     const limit = Math.max(1, Math.min(100, Number(query.limit) || 20));
     const skip = (page - 1) * limit;
 
-    const [bookings, total] = await Promise.all([
-      Booking.find(filter).sort({ scheduledAt: -1 }).skip(skip).limit(limit),
+    const [rawBookings, total] = await Promise.all([
+      Booking.find(filter)
+        .populate('customerId', 'fullName email phone')
+        .populate('categoryId', 'name slug')
+        .populate('serviceId', 'name slug')
+        .sort({ scheduledAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
       Booking.countDocuments(filter),
     ]);
+
+    const bookings = rawBookings.map((b: any) => {
+      if (!b.guest && b.customerId && typeof b.customerId === 'object') {
+        b.guest = {
+          fullName: b.customerId.fullName || 'Registered Customer',
+          email: b.customerId.email || '',
+          phone: b.customerId.phone || '',
+        };
+      }
+      return b;
+    });
 
     return {
       isCsv: false,
