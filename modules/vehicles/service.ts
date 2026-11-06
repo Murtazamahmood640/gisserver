@@ -7,6 +7,32 @@ export class VehicleService {
    * Creates a vehicle for the owner.
    */
   static async createVehicle(ownerUserId: string, data: Partial<IVehicle>): Promise<IVehicle> {
+    const make = (data.make || '').trim();
+    const rawModel = ((data as any).model || (data as any).vehicleModel || '').trim();
+    const year = Number(data.year);
+    const category = data.category;
+
+    // Check for existing duplicate vehicle for this user
+    if (make && rawModel) {
+      const existing = await Vehicle.findOne({
+        ownerUserId,
+        deletedAt: null,
+        make: { $regex: new RegExp(`^${make.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        vehicleModel: { $regex: new RegExp(`^${rawModel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        ...(category ? { category } : {}),
+        ...(year && !isNaN(year) ? { year } : {}),
+      });
+
+      if (existing) {
+        if (data.isDefault && !existing.isDefault) {
+          await Vehicle.updateMany({ ownerUserId, deletedAt: null }, { $set: { isDefault: false } });
+          existing.isDefault = true;
+          await existing.save();
+        }
+        return existing;
+      }
+    }
+
     if (data.isDefault) {
       await Vehicle.updateMany({ ownerUserId, deletedAt: null }, { $set: { isDefault: false } });
     } else {
@@ -18,6 +44,7 @@ export class VehicleService {
 
     const vehicle = new Vehicle({
       ...data,
+      vehicleModel: rawModel || data.vehicleModel,
       ownerUserId,
       deletedAt: null,
     });
