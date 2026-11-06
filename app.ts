@@ -399,7 +399,7 @@ app.post(
 app.get(
   '/api/feedback',
   (req: Request, res: Response, next: NextFunction) => {
-    if (req.query.status === 'publish') {
+    if (req.query.status === 'publish' || req.query.published === 'true') {
       return next();
     }
     return authenticateToken(req, res, () => {
