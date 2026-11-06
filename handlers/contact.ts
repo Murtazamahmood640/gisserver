@@ -8,8 +8,9 @@ import { verifyToken, type JwtPayload } from '../utils/jwt';
 async function getTokenFromRequest(req: VercelRequest): Promise<JwtPayload | null> {
   const authUser = (req as any).user;
   if (authUser) return authUser;
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const headers = req.headers || (req as any).rawHeaders || {};
+  const authHeader = headers['authorization'] || headers['Authorization'];
+  const token = typeof authHeader === 'string' ? authHeader.split(' ')[1] : null;
   if (!token) return null;
   const decoded = verifyToken(token);
   if (decoded && (decoded.role as string) === 'user') {
@@ -102,8 +103,8 @@ export default async function handler(
         data: contacts,
       });
     } else if (req.method === 'PUT') {
-      const { id } = req.query;
-      const { status } = req.body;
+      const id = (req.query?.id || (req as any).params?.id) as string;
+      const { status } = (req.body || {});
 
       if (!id) {
         return res.status(400).json({
@@ -122,7 +123,7 @@ export default async function handler(
       const contact = await Contact.findByIdAndUpdate(
         id,
         { status },
-        { returnDocument: 'after' }
+        { new: true, returnDocument: 'after' }
       );
 
       if (!contact) {
@@ -138,7 +139,7 @@ export default async function handler(
         data: contact,
       });
     } else if (req.method === 'DELETE') {
-      const { id } = req.query;
+      const id = (req.query?.id || (req as any).params?.id) as string;
 
       if (!id) {
         return res.status(400).json({

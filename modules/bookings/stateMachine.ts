@@ -2,14 +2,14 @@ import { BookingStatus } from '../../models/Booking';
 
 export const VALID_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   pending: ['confirmed', 'cancelled', 'assigned'],
-  confirmed: ['assigned', 'technician_en_route', 'cancelled', 'no_show'],
-  assigned: ['technician_en_route', 'confirmed', 'cancelled', 'no_show'],
-  technician_en_route: ['arrived', 'cancelled'],
-  arrived: ['in_progress', 'cancelled'],
+  confirmed: ['assigned', 'technician_en_route', 'in_progress', 'completed', 'cancelled', 'no_show'],
+  assigned: ['technician_en_route', 'confirmed', 'in_progress', 'completed', 'cancelled', 'no_show'],
+  technician_en_route: ['arrived', 'in_progress', 'completed', 'cancelled'],
+  arrived: ['in_progress', 'completed', 'cancelled'],
   in_progress: ['completed', 'cancelled'],
   completed: ['refunded'],
   cancelled: ['pending', 'confirmed'], // Admin deliberate reopen
-  no_show: ['refunded', 'cancelled'],
+  no_show: ['refunded', 'cancelled', 'confirmed'],
   refunded: [],
 };
 

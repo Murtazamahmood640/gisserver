@@ -303,29 +303,31 @@ app.get(
   }
 );
 
-// Admin-only: Update appointment
+// Admin-only: Update appointment (supports both /api/appointments/:id and /api/appointments?id=...)
 app.put(
-  '/api/appointments/:id',
+  ['/api/appointments', '/api/appointments/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await appointmentsHandler(
-      { ...req, query: { id: req.params.id } } as any,
-      res as any
-    );
+    const appointmentId = req.params.id || req.query.id;
+    if (appointmentId) {
+      req.query.id = appointmentId as string;
+    }
+    await appointmentsHandler(req as any, res as any);
   }
 );
 
-// Admin-only: Delete appointment
+// Admin-only: Delete appointment (supports both /api/appointments/:id and /api/appointments?id=...)
 app.delete(
-  '/api/appointments/:id',
+  ['/api/appointments', '/api/appointments/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await appointmentsHandler(
-      { ...req, query: { id: req.params.id } } as any,
-      res as any
-    );
+    const appointmentId = req.params.id || req.query.id;
+    if (appointmentId) {
+      req.query.id = appointmentId as string;
+    }
+    await appointmentsHandler(req as any, res as any);
   }
 );
 
@@ -352,29 +354,31 @@ app.get(
   }
 );
 
-// Admin or Dispatcher: Update contact inquiry
+// Admin or Dispatcher: Update contact inquiry (supports both /api/contact/:id and /api/contact?id=...)
 app.put(
-  '/api/contact/:id',
+  ['/api/contact', '/api/contact/:id'],
   authenticateToken,
   requireRoles('admin', 'dispatcher'),
   async (req: Request, res: Response) => {
-    await contactHandler(
-      { ...req, query: { id: req.params.id } } as any,
-      res as any
-    );
+    const contactId = req.params.id || req.query.id;
+    if (contactId) {
+      req.query.id = contactId as string;
+    }
+    await contactHandler(req as any, res as any);
   }
 );
 
-// Admin-only: Delete contact inquiry
+// Admin-only: Delete contact inquiry (supports both /api/contact/:id and /api/contact?id=...)
 app.delete(
-  '/api/contact/:id',
+  ['/api/contact', '/api/contact/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await contactHandler(
-      { ...req, query: { id: req.params.id } } as any,
-      res as any
-    );
+    const contactId = req.params.id || req.query.id;
+    if (contactId) {
+      req.query.id = contactId as string;
+    }
+    await contactHandler(req as any, res as any);
   }
 );
 
@@ -407,29 +411,31 @@ app.get(
   }
 );
 
-// Admin-only: Update review status
+// Admin-only: Update review status (supports both /api/feedback/:id and /api/feedback?id=...)
 app.put(
-  '/api/feedback/:id',
+  ['/api/feedback', '/api/feedback/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await feedbackHandler(
-      { ...req, query: { id: req.params.id } } as any,
-      res as any
-    );
+    const feedbackId = req.params.id || req.query.id;
+    if (feedbackId) {
+      req.query.id = feedbackId as string;
+    }
+    await feedbackHandler(req as any, res as any);
   }
 );
 
-// Admin-only: Delete review
+// Admin-only: Delete review (supports both /api/feedback/:id and /api/feedback?id=...)
 app.delete(
-  '/api/feedback/:id',
+  ['/api/feedback', '/api/feedback/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await feedbackHandler(
-      { ...req, query: { id: req.params.id } } as any,
-      res as any
-    );
+    const feedbackId = req.params.id || req.query.id;
+    if (feedbackId) {
+      req.query.id = feedbackId as string;
+    }
+    await feedbackHandler(req as any, res as any);
   }
 );
 
@@ -495,23 +501,31 @@ app.post(
   }
 );
 
-// Admin-only: Update blog post
+// Admin-only: Update blog (supports both /api/blogs/:id and /api/blogs?id=...)
 app.put(
-  '/api/blogs/:id',
+  ['/api/blogs', '/api/blogs/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await blogsHandler({ ...req, query: { id: req.params.id } } as any, res as any);
+    const blogId = req.params.id || req.query.id;
+    if (blogId) {
+      req.query.id = blogId as string;
+    }
+    await blogsHandler(req as any, res as any);
   }
 );
 
-// Admin-only: Delete blog post
+// Admin-only: Delete blog (supports both /api/blogs/:id and /api/blogs?id=...)
 app.delete(
-  '/api/blogs/:id',
+  ['/api/blogs', '/api/blogs/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await blogsHandler({ ...req, query: { id: req.params.id } } as any, res as any);
+    const blogId = req.params.id || req.query.id;
+    if (blogId) {
+      req.query.id = blogId as string;
+    }
+    await blogsHandler(req as any, res as any);
   }
 );
 
@@ -606,37 +620,27 @@ app.post(
 );
 
 app.put(
-  '/api/users/:id',
+  ['/api/users', '/api/users/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await usersHandler({ ...req, query: { id: req.params.id } } as any, res as any);
-  }
-);
-
-app.put(
-  '/api/users',
-  authenticateToken,
-  requireAdminRole,
-  async (req: Request, res: Response) => {
+    const userId = req.params.id || req.query.id;
+    if (userId) {
+      req.query.id = userId as string;
+    }
     await usersHandler(req as any, res as any);
   }
 );
 
 app.delete(
-  '/api/users/:id',
+  ['/api/users', '/api/users/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await usersHandler({ ...req, query: { id: req.params.id } } as any, res as any);
-  }
-);
-
-app.delete(
-  '/api/users',
-  authenticateToken,
-  requireAdminRole,
-  async (req: Request, res: Response) => {
+    const userId = req.params.id || req.query.id;
+    if (userId) {
+      req.query.id = userId as string;
+    }
     await usersHandler(req as any, res as any);
   }
 );
