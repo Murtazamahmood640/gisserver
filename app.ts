@@ -556,23 +556,31 @@ app.post(
   }
 );
 
-// Admin-only: Update coupon
+// Admin-only: Update coupon (supports both /api/coupons/:id and /api/coupons?id=...)
 app.put(
-  '/api/coupons/:id',
+  ['/api/coupons', '/api/coupons/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await couponsHandler({ ...req, query: { id: req.params.id } } as any, res as any);
+    const couponId = req.params.id || req.query.id;
+    if (couponId) {
+      req.query.id = couponId as string;
+    }
+    await couponsHandler(req as any, res as any);
   }
 );
 
-// Admin-only: Delete coupon
+// Admin-only: Delete coupon (supports both /api/coupons/:id and /api/coupons?id=...)
 app.delete(
-  '/api/coupons/:id',
+  ['/api/coupons', '/api/coupons/:id'],
   authenticateToken,
   requireAdminRole,
   async (req: Request, res: Response) => {
-    await couponsHandler({ ...req, query: { id: req.params.id } } as any, res as any);
+    const couponId = req.params.id || req.query.id;
+    if (couponId) {
+      req.query.id = couponId as string;
+    }
+    await couponsHandler(req as any, res as any);
   }
 );
 

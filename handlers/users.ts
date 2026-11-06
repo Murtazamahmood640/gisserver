@@ -6,8 +6,12 @@ import { verifyToken, type JwtPayload } from '../utils/jwt';
 import { invalidateUserStatusCache } from '../middleware/auth';
 
 async function getTokenFromRequest(req: VercelRequest): Promise<JwtPayload | null> {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  if ((req as any).user) {
+    return (req as any).user;
+  }
+  const headers = req.headers || (req as any).rawHeaders || {};
+  const authHeader = headers['authorization'] || headers['Authorization'];
+  const token = typeof authHeader === 'string' ? authHeader.split(' ')[1] : null;
   if (!token) return null;
   return verifyToken(token);
 }

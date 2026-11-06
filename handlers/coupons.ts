@@ -6,8 +6,12 @@ import { verifyToken } from '../utils/jwt';
 import type { JwtPayload } from '../utils/jwt';
 
 async function getTokenFromRequest(req: VercelRequest): Promise<JwtPayload | null> {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  if ((req as any).user) {
+    return (req as any).user;
+  }
+  const headers = req.headers || (req as any).rawHeaders || {};
+  const authHeader = headers['authorization'] || headers['Authorization'];
+  const token = typeof authHeader === 'string' ? authHeader.split(' ')[1] : null;
   if (!token) return null;
   return verifyToken(token);
 }
@@ -67,6 +71,7 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         coupons,
+        data: coupons,
       });
     }
 
@@ -122,7 +127,7 @@ export default async function handler(
     }
 
     if (req.method === 'PUT') {
-      const { id } = req.query;
+      const id = (req.query?.id || (req as any).params?.id) as string;
       const { discountPercentage, expiryDate, isActive } = req.body;
 
       if (!id || typeof id !== 'string') {
@@ -159,7 +164,7 @@ export default async function handler(
       const updatedCoupon = await Coupon.findByIdAndUpdate(
         id,
         updateData,
-        { returnDocument: 'after', runValidators: true }
+        { new: true, returnDocument: 'after', runValidators: true }
       );
 
       if (!updatedCoupon) {
@@ -176,7 +181,7 @@ export default async function handler(
     }
 
     if (req.method === 'DELETE') {
-      const { id } = req.query;
+      const id = (req.query?.id || (req as any).params?.id) as string;
 
       if (!id || typeof id !== 'string') {
         return res.status(400).json({
