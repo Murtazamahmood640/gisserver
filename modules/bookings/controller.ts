@@ -141,6 +141,25 @@ export class BookingController {
       ? (typeof (booking as any).toObject === 'function' ? (booking as any).toObject() : { ...booking })
       : sanitizeBookingForGuest(booking);
 
+    // If customerId is populated as an object, attach customer field and normalize phone
+    if (responseData.customerId && typeof responseData.customerId === 'object') {
+      responseData.customer = {
+        _id: responseData.customerId._id,
+        fullName: responseData.customerId.fullName,
+        email: responseData.customerId.email,
+        phone: responseData.customerId.phone,
+      };
+      if (!responseData.guest) {
+        responseData.guest = {
+          fullName: responseData.customerId.fullName,
+          email: responseData.customerId.email,
+          phone: responseData.customerId.phone,
+        };
+      } else if (!responseData.guest.phone && responseData.customerId.phone) {
+        responseData.guest.phone = responseData.customerId.phone;
+      }
+    }
+
     // Attach technician card once assigned: displayName, photoUrl, rating, vehicle type only (no phone or email)
     const assignedTechUserId = booking.assignment?.technicianUserId || booking.technicianId;
     if (assignedTechUserId) {

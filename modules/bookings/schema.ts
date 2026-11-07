@@ -23,11 +23,11 @@ export const bookingSourceEnum = z.enum([
 ]);
 
 export const addressSnapshotSchema = z.object({
-  line1: z.string().optional().default(''),
+  line1: z.string().trim().min(1, 'Street address is required'),
   line2: z.string().optional().default(''),
-  city: z.string().optional().default(''),
-  state: z.string().optional().default(''),
-  zip: z.string().optional().default(''),
+  city: z.string().trim().min(1, 'City is required'),
+  state: z.string().trim().min(1, 'State is required'),
+  zip: z.string().trim().min(2, 'ZIP code is required'),
   country: z.string().optional().default('USA'),
   freeText: z.string().optional().default(''),
 });

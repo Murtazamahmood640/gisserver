@@ -69,7 +69,7 @@ export class BookingService {
     // 1. Validate customer / guest details
     let customerId: mongoose.Types.ObjectId | null = null;
     let customerUser: any = null;
-    const guestInfo = input.guest;
+    let guestInfo = input.guest;
 
     if (!isGuest) {
       customerId = new mongoose.Types.ObjectId(authUser.userId);
@@ -137,6 +137,13 @@ export class BookingService {
           country: savedAddr.country,
         };
       }
+    }
+
+    if (!resolvedAddress.zip || !resolvedAddress.zip.trim()) {
+      const err = new Error('A valid ZIP code is required for the service address') as any;
+      err.statusCode = 400;
+      err.code = 'ZIP_CODE_REQUIRED';
+      throw err;
     }
 
     // 4. Server-side pricing calculation (never trusts client price)
@@ -357,7 +364,7 @@ export class BookingService {
     }
 
     const [bookings, total] = await Promise.all([
-      Booking.find(filter).sort({ scheduledAt: -1 }).skip(skip).limit(limit),
+      Booking.find(filter).populate('customerId', 'fullName email phone').sort({ scheduledAt: -1 }).skip(skip).limit(limit),
       Booking.countDocuments(filter),
     ]);
 
@@ -810,7 +817,7 @@ export class BookingService {
     authUser: { email: string },
     input: { status: BookingStatus; note?: string }
   ) {
-    const booking = await Booking.findOne({ _id: bookingId, deletedAt: null });
+    const booking = await Booking.findOne({ _id: bookingId, deletedAt: null }).populate('customerId', 'fullName email phone');
     if (!booking) {
       const err = new Error('Booking not found') as any;
       err.statusCode = 404;
